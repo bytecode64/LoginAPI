@@ -20,14 +20,21 @@ def register():
     if not username or not password:
         return jsonify({'message': 'Username and password are required!'}), 400
 
-    # Check if the user already exists by sending a GET request to the API
-    response = requests.get(f'{BASE_URL}?username={username}')
-    if response.json():
-        return jsonify({'message': 'User already exists!'}), 409
-
-    # Hash the password and store user data in the API
+    # Fetch all users from the mock API and check if the username already exists
+    response = requests.get(BASE_URL)
+    
+    if response.status_code == 200:
+        users = response.json()
+        # Check if the username already exists by iterating through users
+        for user in users:
+            if user['name'] == username:
+                return jsonify({'message': 'User already exists!'}), 409
+    
+    # If the username does not exist, create a new user and store in the API
     hashed_password = generate_password_hash(password)
-    user_data = {'username': username, 'password': hashed_password}
+    user_data = {'name': username, 'password': hashed_password}
+    
+    # Make the POST request to the API to register the new user
     response = requests.post(BASE_URL, json=user_data)
 
     if response.status_code == 201:
