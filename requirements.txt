@@ -3,4 +3,4 @@ pyjwt
 bcrypt
 gunicorn
 requests
-flask-cors==3.1.1
+flask-cors==3.0.10
