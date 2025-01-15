@@ -3,8 +3,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 import requests
+from flask_cors import CORS  # Importing CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
 app.config['SECRET_KEY'] = 'supersecretkey'
 
 # Base URL for the API
@@ -52,11 +55,16 @@ def login():
     if not username or not password:
         return jsonify({'message': 'Username and password are required!'}), 400
 
-    # Get user data from the API
-    response = requests.get(f'{BASE_URL}?username={username}')
+    # Fetch all users from the mock API
+    response = requests.get(BASE_URL)
+    if response.status_code != 200:
+        return jsonify({'message': 'Failed to fetch users!'}), 500
+    
     users = response.json()
 
-    if not users or not check_password_hash(users[0]['password'], password):
+    # Check if the username exists in the fetched users
+    user = next((user for user in users if user['name'] == username), None)
+    if not user or not check_password_hash(user['password'], password):
         return jsonify({'message': 'Invalid credentials!'}), 401
 
     # Generate JWT token
